@@ -33,6 +33,19 @@ ONES = {
     9: (u"девять", u"девять", u"девять"),
     }  #: Forms (MALE, FEMALE, NEUTER) for ones
 
+ONES_GENITIVE = {
+    0: (u"",        u"",        u""),
+    1: (u"одного",  u"одной",   u"одного"),
+    2: (u"двух",    u"двух",    u"двух"),
+    3: (u"трех",    u"трех",    u"трех"),
+    4: (u"четырех", u"четырех", u"четырех"),
+    5: (u"пяти",    u"пяти",    u"пяти"),
+    6: (u"шести",   u"шести",   u"шести"),
+    7: (u"семи",    u"семи",    u"семи"),
+    8: (u"восьми",  u"восьми",  u"восьми"),
+    9: (u"девяти",  u"девяти",  u"девяти"),
+    }  #: Genitive case for ones (MALE, FEMALE, NEUTER)
+
 TENS = {
     0: u"",
     # 1 - особый случай
@@ -56,6 +69,29 @@ TENS = {
     9: u"девяносто",
     }  #: Tens
 
+TENS_GENITIVE = {
+    0: u"",
+    # 1 - особый случай
+    10: u"десяти",
+    11: u"одиннадцати",
+    12: u"двенадцати",
+    13: u"тринадцати",
+    14: u"четырнадцати",
+    15: u"пятнадцати",
+    16: u"шестнадцати",
+    17: u"семнадцати",
+    18: u"восемнадцати",
+    19: u"девятнадцати",
+    2: u"двадцати",
+    3: u"тридцати",
+    4: u"сорока",
+    5: u"пятьдесяти",
+    6: u"шестьдесяти",
+    7: u"семьдесяти",
+    8: u"восемьдесяти",
+    9: u"девяноста",
+    }  #: Genitive case for tens
+
 HUNDREDS = {
     0: u"",
     1: u"сто",
@@ -69,9 +105,25 @@ HUNDREDS = {
     9: u"девятьсот",
     }  #: Hundreds
 
+HUNDREDS_GENITIVE = {
+    0: u"",
+    1: u"ста",
+    2: u"двухсот",
+    3: u"трехсот",
+    4: u"четырсот",
+    5: u"пятисот",
+    6: u"шестисот",
+    7: u"семисот",
+    8: u"восьммсот",
+    9: u"девятисот",
+    }  #: Genitive case for hundreds
+
 MALE = 1    #: sex - male
 FEMALE = 2  #: sex - female
 NEUTER = 3  #: sex - neuter
+
+NOMINATIVE = 1  #: case - именительный
+GENITIVE = 2    #: case - родительный
 
 
 def _get_float_remainder(fvalue, signs=9):
@@ -241,7 +293,7 @@ def rubles(amount, zero_for_kopeck=False):
     return u" ".join(pts)
 
 
-def in_words_int(amount, gender=MALE):
+def in_words_int(amount, gender=MALE, case=NOMINATIVE):
     """
     Integer in words
 
@@ -251,6 +303,9 @@ def in_words_int(amount, gender=MALE):
     @param gender: gender (MALE, FEMALE or NEUTER)
     @type gender: C{int}
 
+    @param gender: gender (NOMINATIVE or GENITIVE)
+    @type gender: C{int}
+
     @return: in-words reprsentation of numeral
     @rtype: C{unicode}
 
@@ -258,7 +313,7 @@ def in_words_int(amount, gender=MALE):
     """
     check_positive(amount)
 
-    return sum_string(amount, gender)
+    return sum_string(amount, gender=gender, case=case)
 
 def in_words_float(amount, _gender=FEMALE):
     """
@@ -267,10 +322,10 @@ def in_words_float(amount, _gender=FEMALE):
     @param amount: float numeral
     @type amount: C{float} or C{Decimal}
 
-    @return: in-words reprsentation of float numeral
+    @return: in-words representation of float numeral
     @rtype: C{unicode}
 
-    @raise ValueError: when ammount is negative
+    @raise ValueError: when amount is negative
     """
     check_positive(amount)
 
@@ -286,7 +341,7 @@ def in_words_float(amount, _gender=FEMALE):
     return u" ".join(pts)
 
 
-def in_words(amount, gender=None):
+def in_words(amount, gender=None, case=NOMINATIVE):
     """
     Numeral in words
 
@@ -294,6 +349,9 @@ def in_words(amount, gender=None):
     @type amount: C{integer types}, C{float} or C{Decimal}
 
     @param gender: gender (MALE, FEMALE or NEUTER)
+    @type gender: C{int}
+
+    @param gender: gender (NOMINATIVE or GENITIVE)
     @type gender: C{int}
 
     @return: in-words reprsentation of numeral
@@ -313,7 +371,7 @@ def in_words(amount, gender=None):
         args = (amount, gender)
     # если целое
     if isinstance(amount, six.integer_types):
-        return in_words_int(*args)
+        return in_words_int(*args, case=case)
     # если дробное
     elif isinstance(amount, (float, Decimal)):
         return in_words_float(*args)
@@ -325,7 +383,7 @@ def in_words(amount, gender=None):
             % type(amount))
 
 
-def sum_string(amount, gender, items=None):
+def sum_string(amount, gender, items=None, case=NOMINATIVE):
     """
     Get sum in words
 
@@ -333,6 +391,9 @@ def sum_string(amount, gender, items=None):
     @type amount: C{integer types}
 
     @param gender: gender of object (MALE, FEMALE or NEUTER)
+    @type gender: C{int}
+
+    @param gender: gender (NOMINATIVE or GENITIVE)
     @type gender: C{int}
 
     @param items: variants of object in three forms:
@@ -366,23 +427,23 @@ def sum_string(amount, gender, items=None):
     tmp_val = amount
 
     # единицы
-    into, tmp_val = _sum_string_fn(into, tmp_val, gender, items)
+    into, tmp_val = _sum_string_fn(into, tmp_val, gender, items, case=case)
     # тысячи
     into, tmp_val = _sum_string_fn(into, tmp_val, FEMALE,
-                                    (u"тысяча", u"тысячи", u"тысяч"))
+                                    (u"тысяча", u"тысячи", u"тысяч"), case=case)
     # миллионы
     into, tmp_val = _sum_string_fn(into, tmp_val, MALE,
-                                    (u"миллион", u"миллиона", u"миллионов"))
+                                    (u"миллион", u"миллиона", u"миллионов"), case=case)
     # миллиарды
     into, tmp_val = _sum_string_fn(into, tmp_val, MALE,
-                                    (u"миллиард", u"миллиарда", u"миллиардов"))
+                                    (u"миллиард", u"миллиарда", u"миллиардов"), case=case)
     if tmp_val == 0:
         return into
     else:
         raise ValueError("Cannot operand with numbers bigger than 10**11")
 
 
-def _sum_string_fn(into, tmp_val, gender, items=None):
+def _sum_string_fn(into, tmp_val, gender, items=None, case=NOMINATIVE):
     """
     Make in-words representation of single order
 
@@ -393,6 +454,9 @@ def _sum_string_fn(into, tmp_val, gender, items=None):
     @type tmp_val: C{integer types}
 
     @param gender: gender (MALE, FEMALE or NEUTER)
+    @type gender: C{int}
+
+    @param gender: gender (NOMINATIVE or GENITIVE)
     @type gender: C{int}
 
     @param items: variants of objects
@@ -426,20 +490,29 @@ def _sum_string_fn(into, tmp_val, gender, items=None):
     end_word = five_items
 
     # сотни
-    words.append(HUNDREDS[rest // 100])
+    if case == NOMINATIVE:
+        words.append(HUNDREDS[rest // 100])
+    if case == GENITIVE:
+        words.append(HUNDREDS_GENITIVE[rest // 100])
 
     # десятки
     rest = rest % 100
     rest1 = rest // 10
     # особый случай -- tens=1
-    tens = rest1 == 1 and TENS[rest] or TENS[rest1]
+    if case == NOMINATIVE:
+        tens = rest1 == 1 and TENS[rest] or TENS[rest1]
+    if case == GENITIVE:
+        tens = rest1 == 1 and TENS_GENITIVE[rest] or TENS_GENITIVE[rest1]
     words.append(tens)
 
     # единицы
     if rest1 < 1 or rest1 > 1:
         amount = rest % 10
         end_word = choose_plural(amount, items)
-        words.append(ONES[amount][gender-1])
+        if case == NOMINATIVE:
+            words.append(ONES[amount][gender-1])
+        if case == GENITIVE:
+            words.append(ONES_GENITIVE[amount][gender-1])
     words.append(end_word)
 
     # добавляем то, что уже было

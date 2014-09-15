@@ -89,7 +89,7 @@ def rubles(amount, zero_for_kopeck=False):
         res = default_value % {'error': err, 'value': str(amount)}
     return res
 
-def in_words(amount, gender=None):
+def in_words(amount, gender=None, case=numeral.NOMINATIVE):
     """
     In-words representation of amount.
 
@@ -100,11 +100,24 @@ def in_words(amount, gender=None):
         {{ some_other_int|in_words:FEMALE }}
     """
     try:
-        res = numeral.in_words(amount, getattr(numeral, str(gender), None))
+        res = numeral.in_words(amount, getattr(numeral, str(gender), None), case)
     except Exception as err:
         # because filter must die silently
         res = default_value % {'error': err, 'value': str(amount)}
     return res
+
+def in_words_genitive(amount, gender=None):
+    """
+    In-words representation of amount, in genitive case.
+
+    Parameter is a gender: MALE, FEMALE or NEUTER
+
+    Examples::
+        {{ some_int|in_words_genitive }}
+        {{ some_other_int|in_words_genitive:FEMALE }}
+    """
+
+    return in_words(amount, gender, numeral.GENITIVE)
 
 # -- register filters
 
@@ -112,6 +125,7 @@ register.filter('choose_plural', choose_plural)
 register.filter('get_plural', get_plural)
 register.filter('rubles', rubles)
 register.filter('in_words', in_words)
+register.filter('in_words_genitive', in_words_genitive)
 
 # -- tags
 
